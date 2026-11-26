@@ -7,8 +7,9 @@
 // Constants
 int mapHeight;
 int mapWidth;
-int seconds;
-int cseconds;
+// Updated by the timer interrupt, so reads must not be cached by the compiler.
+volatile int seconds;
+volatile int cseconds;
 
 int stage;
 enum {
@@ -66,6 +67,7 @@ void initNonPlayerSprites();
 void clearSprites();
 
 void waitSeconds();
+void updateCamera();
 
 // Collision function prototypes
 int collisionCheck(unsigned char *collisionMap, int mapWidth, int col, int row, int width, int height, 

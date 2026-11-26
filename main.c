@@ -60,8 +60,6 @@ int main() {
         // Update button variables.
         oldButtons = buttons;
         buttons = BUTTONS;
-    // mgba_printf(seconds);
-        mgba_printf("seconds: (%d)", seconds);
 
         // State Machine.
         switch (state) {
@@ -220,6 +218,16 @@ void goToWin() {
 
 // Runs every frame of the win state.
 void win() {
+    // Animate the evolved eevees instead of leaving them frozen on one frame.
+    eeveeTimer = (eeveeTimer + 1) % 30;
+    if (eeveeTimer == 0) {
+        currEeveeFrame = (currEeveeFrame + 1) % 3;
+    }
+    shadowOAM[1].attr2 = ATTR2_PALROW(0) | ATTR2_TILEID(16, (currEeveeFrame * 4));
+    shadowOAM[2].attr2 = ATTR2_PALROW(0) | ATTR2_TILEID(20, (currEeveeFrame * 4));
+    waitForVBlank();
+    DMANow(3, shadowOAM, OAM, 128 * 4);
+
     if (BUTTON_PRESSED(BUTTON_START)) {
         goToStart();
     }   

@@ -49,7 +49,28 @@ int hasLeafStone;
 
 int wait;
 
-int infoScreen;
+// The house exit only works once DOWN has been released after arriving,
+// so a held DOWN (e.g. walking into lava) doesn't bounce you straight back out.
+int houseExitArmed;
+
+// Info screens (hurt / evolved) last this long, and can be skipped after 1 second.
+#define INFOSCREENSECONDS 5
+// How far off-center (in pixels) the player can be and still slide into the house doorway.
+#define DOORASSISTRANGE 8
+
+// Lava rock speed: each rock falls `rdel` pixels every LAVAROCKFRAMES frames.
+// Rocks used to fall 2-3 px every frame; 3-4 px per 4 frames is about 1/3 that.
+#define LAVAROCKFRAMES 4
+#define LAVAROCKSLOWSPEED 3
+#define LAVAROCKFASTSPEED 4
+int lavaRockTimer;
+
+// Pichu's feet within its 16x16 sprite (rows 12-14, cols 4-11 in every frame).
+// Only this box is tested against lava pools.
+#define PLAYERFEETCOL 4
+#define PLAYERFEETROW 12
+#define PLAYERFEETWIDTH 8
+#define PLAYERFEETHEIGHT 3
 
 int loopCount;
 int poopCount;
@@ -195,6 +216,22 @@ void initPlayer() {
 
 // Handle basic player movement
 void updatePlayer() {
+    // The house doorway is exactly as wide as the player. When pushing UP at its
+    // mouth while slightly misaligned, slide the player into line with it.
+    if (stage == OUTSIDE && BUTTON_HELD(BUTTON_UP)
+        && !BUTTON_HELD(BUTTON_LEFT) && !BUTTON_HELD(BUTTON_RIGHT)
+        && player.worldRow >= EEVEEDOORROW && player.worldRow <= EEVEEDOORROW + 20
+        && player.worldCol != EEVEEDOORCOL
+        && abs(player.worldCol - EEVEEDOORCOL) <= DOORASSISTRANGE) {
+        int step = (player.worldCol < EEVEEDOORCOL) ? 1 : -1;
+        if (collisionCheck(collisionMap, mapWidth,
+            player.worldCol, player.worldRow,
+            player.width, player.height,
+            step, 0)) {
+            player.worldCol += step;
+        }
+    }
+
     if(BUTTON_HELD(BUTTON_UP)) {
         if (stage != FOREST && collisionCheck(collisionMap, mapWidth, 
             player.worldCol, player.worldRow, 
@@ -252,14 +289,32 @@ void updatePlayer() {
     if (stage == FOREST  && BUTTON_PRESSED(BUTTON_B)) {
         cheat = 1;
     }
+    updateCamera();
     animatePlayer();
+}
+
+// On the big top-down maps, keep the camera centered on the player (clamped to
+// the map edges). Previously the camera moved in lockstep with the player, so
+// after touching a map edge the player stayed stuck off-center, and in the
+// volcano you walked down with the player pinned to the top of the screen.
+void updateCamera() {
+    if (stage != OUTSIDE && stage != VOLCANO) {
+        return;
+    }
+    hOff = player.worldCol + player.width / 2 - SCREENWIDTH / 2;
+    vOff = player.worldRow + player.height / 2 - SCREENHEIGHT / 2;
+
+    if (hOff < 0) hOff = 0;
+    if (vOff < 0) vOff = 0;
+    if (hOff > mapWidth - SCREENWIDTH) hOff = mapWidth - SCREENWIDTH;
+    if (vOff > mapHeight - SCREENHEIGHT) vOff = mapHeight - SCREENHEIGHT;
 }
 
 void updateStage() {
 	// change stage, world variables, background vars to specified stage
 	switch (stage) {
 		case OUTSIDE:
-		    if (player.worldRow == EEVEEDOORROW && player.worldCol == EEVEEDOORCOL) { 
+		    if (player.worldRow <= EEVEEDOORROW && player.worldCol == EEVEEDOORCOL) {
                 // move into house
                 returnToHouse();
             } else if (collision(player.worldCol, player.worldRow, player.width, player.height, 
@@ -322,7 +377,10 @@ void updateStage() {
             }
 			break;
 		case HOUSE:
-            if (player.worldRow >= 142 && BUTTON_HELD(BUTTON_DOWN)) {
+            if (!BUTTON_HELD(BUTTON_DOWN)) {
+                houseExitArmed = 1;
+            }
+            if (houseExitArmed && player.worldRow >= 142 && BUTTON_HELD(BUTTON_DOWN)) {
                 returnToOutside();
             }
 			break;
@@ -352,19 +410,23 @@ void updateStage() {
                 REG_BG0HOFF = hOff;
                 initNonPlayers();
             } else if (!collisionCheck((unsigned char *) lavaPoolCMBitmap, mapWidth,
-                player.worldCol, player.worldRow, player.width, player.height, 0, 0)) {
+                player.worldCol + PLAYERFEETCOL, player.worldRow + PLAYERFEETROW,
+                PLAYERFEETWIDTH, PLAYERFEETHEIGHT, 0, 0)) {
+                // Only Pichu's feet count: the head and ears overlapping lava
+                // (e.g. standing just below a pool) is safe.
                 setLavaHitBackground();
                 returnToHouse();
+                // Stop here: the rocks below still have volcano coordinates and
+                // could "hit" the player again at their new spot in the house.
+                return;
             }
 
             for (int i = 0; i < lavaRocksLen; i++) {
                 if (collision(player.worldCol, player.worldRow, player.width, player.height,
-                    lavaRocks[i].worldCol, lavaRocks[i].worldRow, lavaRocks[i].width, lavaRocks[i].height)) {                
+                    lavaRocks[i].worldCol, lavaRocks[i].worldRow, lavaRocks[i].width, lavaRocks[i].height)) {
                     setLavaHitBackground();
-                    while (--infoScreen > 0) {
-                        waitForVBlank();
-                    }
                     returnToHouse();
+                    return;
                 }
             }
 			break;
@@ -400,7 +462,8 @@ void updateStage() {
                         if (collision(player.worldCol, player.worldRow, player.width, player.height,
                             poops[i].worldCol, poops[i].worldRow, poops[i].width, poops[i].height)) {
                                 setPoopHitBackground();
-                                returnToHouse();                            
+                                returnToHouse();
+                                return;
                         }
                     }
                 } 
@@ -554,16 +617,24 @@ void setLavaHitBackground() {
 }
 
 
+// Holds an info screen using the seconds timer (timer 3 interrupt).
+// It lasts INFOSCREENSECONDS, but after the first second A or START skips ahead.
 void waitSeconds() {
-    mgba_printf("seconds before wait: (%d)", seconds);
     int secondsBeforeWait = seconds;
     int secChange = 0;
-    while (secChange < 5){
+    while (secChange < INFOSCREENSECONDS) {
+        waitForVBlank();
         if (secondsBeforeWait != seconds) {
             secChange += 1;
             secondsBeforeWait = seconds;
         }
-        mgba_printf("seconds before wait: (%d)", seconds);
+        if (secChange >= 1 && (BUTTON_HELD(BUTTON_A) || BUTTON_HELD(BUTTON_START))) {
+            break;
+        }
+    }
+    // Don't let the skip press carry over into the next screen.
+    while (BUTTON_HELD(BUTTON_A) || BUTTON_HELD(BUTTON_START)) {
+        waitForVBlank();
     }
 }
 
@@ -581,7 +652,6 @@ void setObtainedFlareonBackground() {
     DMANow(3, gotFirePal, PALETTE, 256);
     DMANow(3, gotFireTiles, &CHARBLOCK[0], gotFireTilesLen / 2);
     DMANow(3, gotFireMap, &SCREENBLOCK[30], gotFireMapLen / 2); 
-    mgba_printf("seconds before wait: (%d)", seconds);
     waitSeconds();
 }
 
@@ -615,7 +685,6 @@ void setObtainedLeafeonBackground() {
     DMANow(3, gotLeafPal, PALETTE, 256);
     DMANow(3, gotLeafTiles, &CHARBLOCK[0], gotLeafTilesLen / 2);
     DMANow(3, gotLeafMap, &SCREENBLOCK[30], gotLeafMapLen / 2);                
-    mgba_printf("seconds before wait: (%d)", seconds);
     waitSeconds();
 }
 
@@ -802,7 +871,7 @@ void initNonPlayers() {
             for (int i = 0; i < lavaRocksLen; i++) {
                 lavaRocks[i].width = 16;
                 lavaRocks[i].height = 16;
-                lavaRocks[i].rdel = (i % 2 == 0) ? 2 : 3;
+                lavaRocks[i].rdel = (i % 2 == 0) ? LAVAROCKSLOWSPEED : LAVAROCKFASTSPEED;
                 lavaRocks[i].cdel = 0;
                 lavaRocks[i].worldCol = (i % 2 == 0) ? rand() % 228 : (rand() % (240 - LAVAROCKSWIDTH)) + 265;
                 lavaRocks[i].worldRow = rand() % (mapHeight - LAVAROCKSWIDTH);
@@ -829,8 +898,13 @@ void initNonPlayers() {
 void updateNonPlayers() {
     switch (stage) {
         case VOLCANO:
+            // Move each rock 1 px on `rdel` out of every LAVAROCKFRAMES frames,
+            // so the motion stays smooth at sub-pixel-per-frame speeds.
+            lavaRockTimer = (lavaRockTimer + 1) % LAVAROCKFRAMES;
             for (int i = 0; i < lavaRocksLen; i++) {
-                lavaRocks[i].worldRow = (lavaRocks[i].worldRow + lavaRocks[i].rdel) % (mapHeight - LAVAROCKSHEIGHT);
+                if (lavaRockTimer < lavaRocks[i].rdel) {
+                    lavaRocks[i].worldRow = (lavaRocks[i].worldRow + 1) % (mapHeight - LAVAROCKSHEIGHT);
+                }
             }
         break;
         case FOREST:
@@ -931,6 +1005,7 @@ void returnToHouse() {
     // move into house
     collisionMap = (unsigned char *) houseCMBitmap;
     stage = HOUSE;
+    houseExitArmed = 0;
 
     setStage();
     vOff = 0;
