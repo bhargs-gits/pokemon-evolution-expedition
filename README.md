@@ -1,126 +1,143 @@
-Welcome to my game, Pokemon: Evolution Expedition! Travel to two minigames to find evolution stones, to evolve your eevees.
+# ⚡ Pokémon: Evolution Expedition
 
-# Final-Project Submission Requirements
-● At least 4 unique sprites, 2 of which must be animated
-- player(animated)
-- sleeping eevee will be animated into the house, but for now it is hardcoded into map
-- standing eevee will be animated into the house, but for now it is hardcoded into map
-- lavablobs have a single sprite
+*A cozy Game Boy Advance adventure. CS 2261 (Media Device Architecture) final project, Spring 2022.*
 
-● One of the two following background requirements are implemented (you do not
-need to implement both)
-○ used parallax movement in forest level
+Two sleepy Eevees are waiting at home. Guide **Pichu** out into the world, brave a volcano and a forest to find their **evolution stones**, and bring them back to watch your friends evolve.
 
-● Modify background tiles, sprite tiles, and/or palette (either) at runtime
-○ Palette Modification at runtime in volcano level
+There's no game over here: if Pichu gets hurt, it's sent home to try again. The game is meant to be positive, completion-based, and cute.
 
-● The following states: START, INSTRUCTIONS, GAME, PAUSE
-○ The GAME state must be implemented in a tiled mode, such as Mode 0
-○ You may (but are not required to) use other modes for other states (ask
-your TAs for tips if you’re confused)
+---
 
-● A WIN and/or LOSE state
-○ Win state when both evolution stones are collected
+## 🎮 How to play
 
-● Meaningful collision
-○ collision with doors, lava pools, lava rocks, and evolution stones
+| Button | Action |
+| --- | --- |
+| **D-Pad** | Move Pichu |
+| **START** | Begin the game / continue from the instructions |
+| **SELECT** | Pause |
+| **A** or **START** | Skip a "you got hurt" / "evolved!" screen (after 1 second) |
+| **B** *(in the forest)* | Activate the cheat (see below) |
 
-CS 2261 Spring 2022
-● Includes meaningful use of timers and/or interrupts (other than vBlank interrupt
-and digital sound)
-○ I used timers for the 'you got hurt', and 'you evolved an eevee' screens!
+**In the pause menu:** START resumes, SELECT shows the instructions again, and B returns to the title screen.
 
-● At least two sounds that can play simultaneously, of which at least one must use
-digital sound
-○ At least one must be looping
-○ At least one must not loop
+### The journey
 
-● A cheat to make the game easier
-○ Press B in the forest to activate the cheat!
-○ Not just skipping to the win state; not just an “invincible” mode; not just
-removing a conditional. It must meaningfully change existing mechanics or
-introduce an entirely new one – please be creative (and ask your TA for
-ideas/guidance). This is an area where people tend to lose points when
-they haven't consulted their TA for guidance.
-● The ability to play the game correctly without being told how to do so ahead of
-time
-○ Aided only be the in-game instructions and menus
-● Bug-free gameplay
-● Multiple.c and .h files
-● A recorded demo of gameplay (unless you volunteer for early demo)
+1. **🏠 Town:** you start just outside the house, where your two Eevees are napping. Walk up through the doorway to visit them, and out the bottom to leave.
+2. **🌋 The Volcano (Fire Stone):** take the path on the **west** side of town. Dodge the falling lava rocks, keep your feet out of the lava pools, and find the cave at the bottom. The Fire Stone inside evolves an Eevee into **Flareon**.
+3. **🌲 The Forest (Leaf Stone):** take the path on the **east** side of town. A Togekiss flies overhead and drops... *surprises*. Keep walking right to reach the clearing, where the Leaf Stone evolves an Eevee into **Leafeon**.
+4. **🏆 Win:** collect both stones and celebrate with your evolved friends!
 
-# Final-Project Milestone 4
-Every state of the game must have its own background. 
-- I have this!
+> **💡 Cheat:** press **B** in the forest to give Pichu cover overhead that blocks anything dropped from above.
 
-All sprites must have artwork that is not just a blank square or placeholder from
-previous milestones (if your game requires it to be only a blank square, let us know
-ahead of time, but this is likely not the case for most, if not all, of you). There must be at
-least four unique sprites, of which two are animated, where "animated" means three or
-more frames of a looping animation. You may not use any sprite art that has been used
-in a lab before.
-- player(animated)
-- sleeping eevee will be animated into the house, but for now it is hardcoded into map
-- standing eevee will be animated into the house, but for now it is hardcoded into map
-- lavablobs have a single sprite
+---
 
-Part 3: Sounds
-- one sound for entire game atm(will add more for final project)
-- one sound for collisions
+## ✨ Features
 
-Part 4: Changing tiles, tilemap, or palette at runtime
-- volcano palette manipulated each iteration to give illusion of heat
+| Requirement | How it's done |
+| --- | --- |
+| **Tiled game state** | All gameplay runs in **Mode 0** with scrolling tile backgrounds |
+| **Sprites** | Animated Pichu, animated sleeping and evolved Eevees, Togekiss, lava rocks, droppings, and the cheat cover |
+| **Parallax** | The forest's sky layer scrolls slower than the foreground |
+| **Runtime palette changes** | The volcano's palette cycles every frame to shimmer with heat |
+| **States** | Start, Instructions, Game, Pause, and Win |
+| **Collision** | Collision maps for walls, doors, lava pools, and stones, plus sprite collisions for lava rocks and droppings |
+| **Timers and interrupts** | Timer interrupts count seconds for the "you got hurt" and "you evolved an Eevee" screens |
+| **Sound** | Two digital sound channels at once: looping music for each area, plus a one-shot evolution jingle |
+| **Cheat** | Overhead cover in the forest that changes how the hazard works, instead of just skipping it |
 
-Part 5: Timer or interrupt
-- will add a timer into volcano level, so that level ends when pichu overheats. Didn't get to finish for this milestone:(
+---
 
-# Final-Project Milestone 3
-make sure to fix the black parts showing up on the edges of the background 
-for m03, make sure the rest of your core gameplay is implemented: 
-- get all 3 different quest regions implemented (fire stone, leaf stone, and water stone) with the different mechanics
-- implement the different stones, - make sure that having all 3 stones takes player to win condition, - add a visual indicator of the stones that the player has already collected. essentially, make sure you have the completed gameplay mechanics!! art doesn’t have to be finalized and gameplay doesn’t have to be perfect, but it should be a playable version, where you can play through the different regions and win the game. as always, make sure to reference the m03 pdf and that you’re meeting all of those requirements. keep up the great work! if you have any questions, please feel free to email me or come to my office hours.
-Julia Reuter E Carvalho, Apr 9 at 8:10pm
+## 🛠️ Building and running
 
-On the Black Parts:
-I actually have black parts drawn into my images, so this was on purpose! I implemented screen scrolling for this milestone, but the main screen still has a thick black outline. I will get rid of this next milestone.
-The volcano scene was remade simply with tiles.
-The Forest screen was simply implemented with a stone to show movement. This level will be my way of playing with aesthetics, so it will primarily by a visual experience(movement will simply be walking right/left)
-The Ocean will be set to automatically scroll, which you will notice when you get to the level. In the next milestone, it will loop for MUCH longer, and obstacles will be implemented
+You'll need a GBA emulator such as [mGBA](https://mgba.io/). Then open `Project.gba` in it:
 
-The stones are present, and colliding with all three ends the game for now. I will add more visuals/more complicated obstacles by the next milestone!
+```sh
+open -a mGBA Project.gba        # macOS
+```
 
-Note: you may have to restart the app to play the game again after hitting the win screen.
-The inside of the house actually properly displays! Next, I will implement eevees and interaction with them.
-I will also implement a foreground screen that displays the stones the player has currently collected. There will be no lose condition, as I want this game to be positive and completion based, and cute!
+To rebuild the ROM from source, use either option:
 
-# Final-Project Milestone 2
- Feedback from M1:
- this is an awesome idea! i appreciate the super detailed milestone!! 
+- **Docker** (the course toolchain image; also the `build` task in `.vscode/tasks.json`):
+  ```sh
+  docker run --rm -it -v "${PWD}:/gba" aaaronic/gba-compiler:1.2
+  ```
+- **devkitPro** installed at `/opt/devkitpro`:
+  ```sh
+  make
+  ```
 
-some questions/considerations: - how are you thinking of implementing the player inventory? will it be a separate UI? will there be a limit to how many items the player can hold? - from what i understand, the way you’re thinking of meeting the background requirement doesn’t actually do so! we’re looking for two backgrounds that appear on the screen at the same time, and both move. 
+### Project layout
 
-- what will the lava “spurting” movement be like? will it be randomized, or on a set time interval? 
-also, where is the lava coming from? overall, i think your concept is really great! i would recommend making sure that it’s not too much to take on with the multiple quest regions (since they have pretty different mechanics). for m2, we want to focus on CORE gameplay mechanics. this is just a prototype and doesn’t have to be perfect or in its finished state yet, but it should satisfy the basic idea of what you want the game to be like. since you have many different regions, let’s aim to get the main environment mostly complete: 
+| File(s) | Purpose |
+| --- | --- |
+| `main.c` | Top-level state machine (start, instructions, game, pause, win) |
+| `game.c` / `game.h` | Player movement, camera, stages, hazards, and stone pickups |
+| `sound.c` / `sound.h` | Digital sound playback and timer interrupts |
+| `mode0.c` / `mode0.h` | GBA hardware helpers (DMA, sprites, collision, input) |
+| `*CM.c` | Collision maps for each area |
+| `*.c` from `.bmp` / `.wav` | Backgrounds, sprites, and music, converted to C arrays |
 
-- player should be able to navigate the environment (move left, right, etc.) 
-- player should be able to enter the house 
-- player should be able to navigate towards quest areas also, i would highly recommend starting on at least one quest region and getting as much done as you can! if you decide to start with the Fire Stone region: 
-- player should be able to navigate this environment 
-- player should automatically return to town if they get too close to certain areas 
-- player should be able to collect firestone, and return to the main environment 
+---
 
-So, here's what I've done:
-The player(pikachu atm), can move in all directions. 
+## 📜 Development history
 
-Pikachu can enter the house by walking through the entrance. The room is messed up, so instead of making the exit be the door, I made it so that colliding with the vase in the top left corner will return the player to the outside.
+<details>
+<summary><b>Final submission checklist</b></summary>
 
-Pikachu can go to one quest area so far. I didn't bother opening up all three quest areas. So, to enter the Lava room, you have to go down the bottom path. This is a little finicky right now, so to enter this room, I suggest that you move all the way to the bottom of the screen and then shift from left/right to find the exact exit spot.
+- **At least 4 unique sprites, 2 animated:** player (animated), sleeping Eevee, standing Eevee, and lava blobs.
+- **Background requirement:** parallax movement in the forest level.
+- **Modify tiles or palette at runtime:** palette changes in the volcano level.
+- **START, INSTRUCTIONS, GAME, PAUSE states:** all implemented, with the game in Mode 0.
+- **WIN state:** reached when both evolution stones are collected.
+- **Meaningful collision:** doors, lava pools, lava rocks, and evolution stones.
+- **Timers and interrupts:** used for the "you got hurt" and "you evolved an Eevee" screens.
+- **Two simultaneous sounds, one digital, one looping and one not:** area music loops, and the evolution jingle plays once.
+- **A cheat:** press B in the forest.
+- **Playable from the in-game instructions alone, bug-free, multiple .c/.h files, and a recorded demo.**
 
-The lava room is very simple right now. The firestone(red square) is in the top left corner, and the lavas move down only. I want to make them into a background that rotates at some point, but right now, this is a good baseline.
+</details>
 
-when the player touched the stone, they teleport to the outside area right now. Later, I will add some animation sequence of the player giving the stone to the eevee, but this is fine for right now.
-After the stone is touched, it will permanently disappear from the room. To exit the room, simply travel to the top right, where the stone used to be. This will return you to the outside area.
+<details>
+<summary><b>Milestone 4</b></summary>
 
-If the player accidentally hits a lava blob, they are automatically teleported back to the main screen.
+- Every state has its own background.
+- All sprites have real artwork: the animated player, sleeping and standing Eevees (later animated in the house), and lava blobs.
+- **Sounds:** one music track for the whole game at this point, plus a collision sound. More were added for the final.
+- **Runtime palette changes:** the volcano palette is shifted every iteration to give the illusion of heat.
+- **Timer:** planned for the volcano, so the level ends when Pichu overheats. It didn't make this milestone.
 
-Thank you for your feedback on M1, and all your help during office hours! <3
+</details>
+
+<details>
+<summary><b>Milestone 3</b></summary>
+
+**TA feedback:** fix the black areas at the background edges. Implement all quest regions with their mechanics, the stones, a win condition once all stones are collected, and an indicator of collected stones.
+
+**Progress:**
+- The black areas are drawn into the images on purpose. Screen scrolling now works, but the main screen still had a thick black outline to remove next milestone.
+- The volcano was rebuilt with tiles.
+- The forest is mainly a visual experience with simple left/right walking. A stone shows movement for now.
+- The ocean scrolled automatically, with longer loops and obstacles planned. It was later cut from the final game.
+- The stones are in place, and collecting all of them ended the game.
+- The inside of the house displays correctly, with Eevee interactions coming next.
+- A foreground overlay showing collected stones was planned.
+- There's deliberately no lose condition, to keep the game positive and cute.
+
+</details>
+
+<details>
+<summary><b>Milestone 2</b></summary>
+
+**TA feedback (from M1):** a great idea! Think through the inventory UI and stone limits. The background requirement needs two backgrounds moving on screen at once. Focus on core mechanics: navigating the town, entering the house, and reaching at least one quest area. Suggested starting with the Fire Stone region.
+
+**Progress:**
+- The player (a placeholder Pikachu at this point) moves in all directions.
+- The player can enter the house through its entrance. The room's exit was temporarily the vase in the top-left corner.
+- One quest area, the lava room, could be reached via the bottom path.
+- The lava room had the Fire Stone (a red square) in the top-left corner, with lava falling straight down.
+- Touching the stone teleports you outside, and the stone stays gone afterward.
+- Touching a lava blob sends you back to the main screen.
+
+Thank you for the feedback on M1 and all the help during office hours! 💛
+
+</details>
